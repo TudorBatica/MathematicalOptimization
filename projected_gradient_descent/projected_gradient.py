@@ -9,7 +9,12 @@ from scipy import optimize
 
 
 class Result:
-    def __init__(self, solution, steps, gradient_norm_evolution, distance_to_target_evolution):
+    """
+    Data class that holds projected gradient descent results.
+    """
+
+    def __init__(self, solution: float = None, steps: int = 0,
+                 gradient_norm_evolution: [float] = [], distance_to_target_evolution: [float] = []):
         self.solution = solution
         self.steps = steps
         self.gradient_norm_evolution = gradient_norm_evolution
@@ -21,25 +26,30 @@ class ProjectedGradientDescent:
     Implements projected gradient descent.
     """
 
-    def __init__(self, epsilon, constraints):
+    def __init__(self, constraints: dict, function, gradient, projection,
+                 epsilon: float = 10**-1, alpha: float = 0.1):
+        """
+        Parameters
+        ---
+        epsilon: Accuracy threshold.\n
+        costraints: Optimization constraints.\n
+        function: f:R^2 -> R\n
+        gradient: gradient(f)\n
+        projection: projection of f on the space defined by the constraints.\n
+        epsilon: Accuracy threshold.\n
+        costraints: Optimization constraints.\n
+        alpha: step size for the constant step solver or initial step size for the backtracking step solver
+        """
         self.epsilon = epsilon
         self.cons = constraints
-        self.f_star = optimize.minimize(lambda x: (
+        self.function = function
+        self.gradient = gradient
+        self.projection = projection
+        self.alpha = alpha
+        __f_star = optimize.minimize(lambda x: (
             x[0] - 2)**4 + (x[0] - 2*x[1])**2, (1, 1), method='SLSQP', constraints=self.cons)
         self.target = self.function(
-            np.array([[self.f_star.x[0]], [self.f_star.x[1]]]))
-
-    def function(self, x: np.array) -> float:
-        return (x[0][0] - 2)**4 + (x[0][0] - 2*x[1][0])**2
-
-    def gradient(self, x: np.array) -> np.array:
-        return np.array([[4*(x[0][0] - 2)**3 + 2*(x[0][0] - 2*x[1][0])], [-4*(x[0][0] - 2*x[1][0])]])
-
-    def projection(self, x: np.array) -> np.array:
-        """
-        Computes the projection of x on Q.
-        """
-        return min(1, 2/(sqrt(x[0]**2 + x[1]**2))) * x
+            np.array([[__f_star.x[0]], [__f_star.x[1]]]))
 
     def stop(self, xk: np.array, epsilon: float) -> bool:
         """
@@ -49,35 +59,27 @@ class ProjectedGradientDescent:
         return sqrt(grad[0][0]**2 + grad[1][0]**2) <= epsilon
 
     def const_projected_gradient_descent(self, alpha: float = 0.1) -> Result:
-        new_x, old_x, steps = self.projection(
-            np.array([[1], [1]])), self.projection(np.array([[1], [1]])), 0
-        gradient_norm_evolution = []
-        function_evolution = []
-        while not self.stop(new_x, self.epsilon):
-            new_x = self.projection(old_x - alpha * self.gradient(old_x))
-            old_x = new_x
-            grad = self.gradient(new_x)
-            gradient_norm_evolution.append(sqrt(grad[0][0]**2 + grad[1][0]**2))
-            function_evolution.append(abs(self.function(new_x) - self.target))
-            steps += 1
-        return Result(old_x, steps, gradient_norm_evolution, function_evolution)
+        return self._projected_gradient_descent(self._get_constant_step_size)
 
     def backtracking_projected_gradient_descent(self) -> Result:
+        return self._projected_gradient_descent(self._get_step_size_with_backtracking)
+
+    def _projected_gradient_descent(self, get_step_size_function) -> Result:
         new_x, old_x, steps = self.projection(
             np.array([[1], [1]])), self.projection(np.array([[1], [1]])), 0
         gradient_norm_evolution = []
         function_evolution = []
         while not self.stop(new_x, self.epsilon):
-            alpha = self._compute_step_size_with_backtracking(old_x)
+            alpha = get_step_size_function(old_x)
             new_x = self.projection(old_x - alpha * self.gradient(old_x))
-            old_x = new_x
             grad = self.gradient(new_x)
             gradient_norm_evolution.append(sqrt(grad[0][0]**2 + grad[1][0]**2))
             function_evolution.append(abs(self.function(new_x) - self.target))
+            old_x = new_x
             steps += 1
         return Result(old_x, steps, gradient_norm_evolution, function_evolution)
 
-    def _compute_step_size_with_backtracking(self, old_x: np.array) -> float:
+    def _get_step_size_with_backtracking(self, old_x: np.array) -> float:
         c, ro = 0.5, 0.1
         alpha = 0.5
         new_x = self.projection(old_x - alpha * self.gradient(old_x))
@@ -86,13 +88,30 @@ class ProjectedGradientDescent:
             new_x = self.projection(old_x - alpha * self.gradient(old_x))
         return alpha
 
+    def _get_constant_step_size(self, old_x: np.array) -> float:
+        return self.alpha
+
 
 if __name__ == '__main__':
-    solver = ProjectedGradientDescent(epsilon=10**-1, constraints=({'type': 'ineq', 'fun': lambda x: -
-                                                                    1 * sqrt(x[0]**2 + x[1]**2) + 2}))
+    constraints = ({'type': 'ineq', 'fun': lambda x: -
+                   1 * sqrt(x[0]**2 + x[1]**2) + 2})
+
+    def function(x): return (
+        x[0][0] - 2)**4 + (x[0][0] - 2*x[1][0])**2
+
+    def gradient(x): return np.array(
+        [[4*(x[0][0] - 2)**3 + 2*(x[0][0] - 2*x[1][0])],
+         [-4*(x[0][0] - 2*x[1][0])]])
+
+    def projection(x): return min(1, 2/(sqrt(x[0]**2 + x[1]**2))) * x
+
+    solver = ProjectedGradientDescent(function=function, gradient=gradient, projection=projection,
+                                      constraints=constraints)
+
     const_results = solver.const_projected_gradient_descent()
     backtracking_results = solver.backtracking_projected_gradient_descent()
-
+    
+    # plot results
     plt.plot([i for i in range(1, const_results.steps + 1)],
              const_results.gradient_norm_evolution)
     plt.plot([i for i in range(1, backtracking_results.steps + 1)],
