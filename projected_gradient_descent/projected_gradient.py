@@ -110,22 +110,24 @@ if __name__ == '__main__':
 
     const_results = solver.const_projected_gradient_descent()
     backtracking_results = solver.backtracking_projected_gradient_descent()
-    
+
     # plot results
+    plt.subplot(211)
     plt.plot([i for i in range(1, const_results.steps + 1)],
              const_results.gradient_norm_evolution)
     plt.plot([i for i in range(1, backtracking_results.steps + 1)],
              backtracking_results.gradient_norm_evolution)
-    plt.ylabel("||gradient(xk)||")
+    plt.ylabel("||gradient(x_k)||")
     plt.xlabel("k")
     plt.legend(["Constant Step(alpha = 0.1)", "Backtracking Step"])
-    plt.show()
 
+    plt.subplot(212)
     plt.plot([i for i in range(1, const_results.steps + 1)],
              const_results.distance_to_target_evolution)
     plt.plot([i for i in range(1, backtracking_results.steps + 1)],
              backtracking_results.distance_to_target_evolution)
-    plt.ylabel("||f(xk) - f*||")
+    plt.ylabel("||f(x_k) - f*||")
     plt.xlabel("k")
     plt.legend(["Constant Step(alpha = 0.1)", "Backtracking Step"])
+
     plt.show()
