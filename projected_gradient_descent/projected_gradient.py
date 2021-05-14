@@ -1,3 +1,4 @@
+from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
 from math import sqrt
@@ -14,7 +15,7 @@ class Result:
     """
 
     def __init__(self, solution: float = None, steps: int = 0,
-                 gradient_norm_evolution: [float] = [], distance_to_target_evolution: [float] = []):
+                 gradient_norm_evolution: List = [], distance_to_target_evolution: List = []):
         self.solution = solution
         self.steps = steps
         self.gradient_norm_evolution = gradient_norm_evolution
