@@ -48,7 +48,7 @@ class MiniBatchPegasos:
         """
         Randomly selects a mini batch of size `self.params.batch_size`
         """
-        indexes = random.sample(range(1, len(training_data.data)), self.params.batch_size)
+        indexes = random.sample(range(0, len(training_data.data)), self.params.batch_size)
         return LabeledData(data=training_data.data[indexes], labels=training_data.labels[indexes])
 
     def _extract_examples_with_non_zero_losses(self, set: LabeledData, weights) -> LabeledData:
