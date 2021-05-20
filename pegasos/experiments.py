@@ -28,7 +28,7 @@ def _plot_iterations_required(desired_loss, k, iters):
     plt.title(f'Iterations required to obtain a loss of {desired_loss}')
     plt.xlabel('Batch Size')
     plt.ylabel('Iterations')
-    plt.xticks(rotation = 65)
+    plt.xticks(rotation=65)
     plt.bar(k, iters)
     plt.show()
 
@@ -49,12 +49,13 @@ def compare_loss_convergence(desired_loss: float, training_data: LabeledData, mi
     mini_batch_loss = mini_batch_model.train(training_data)
     normal_loss = normal_model.train(training_data)
 
-    _plot_losses_on_same_figure(mini_batch_loss, normal_loss, mini_batch_size)
+    _plot_losses_on_same_figure(
+        mini_batch_loss, normal_loss, mini_batch_size, desired_loss, len(training_data.data))
 
 
-def _plot_losses_on_same_figure(mini_batch_loss, normal_loss, mini_batch_size):
+def _plot_losses_on_same_figure(mini_batch_loss, normal_loss, mini_batch_size, desired_loss, data_len):
     mini_batch_size_percentage = 100 * \
-        mini_batch_size / len(training_data.data)
+        mini_batch_size / data_len
 
     plt.figure()
     plt.title(f'Loss convergence - desired loss = {desired_loss}')
@@ -67,4 +68,25 @@ def _plot_losses_on_same_figure(mini_batch_loss, normal_loss, mini_batch_size):
     plt.savefig(f'convergence_comparison_k={mini_batch_size}')
     plt.show()
 
-# def compare_solution_accuracy(iterations, ):
+
+def compare_solution_accuracy(training_data, iterations, batch_sizes):
+    normal_pegasos_model = PegasosSolver(PegasosParameters(
+        lmbda=1, iterations=iterations, verbose=False))
+    losses = [normal_pegasos_model.train(training_data)[-1]]
+    classes = ['Normal Pegasos']
+    for size in batch_sizes:
+        model = PegasosSolver(PegasosParameters(
+            lmbda=1, iterations=iterations, batch_size=size, verbose=False))
+        percentage = size * 100 / len(training_data.data)
+        losses.append(model.train(training_data)[-1])
+        classes.append(f'Mini Batch Pegasos\nBatch Size={size},\ni.e. {percentage:.1f}%')
+    _plot_solution_accuracy(classes, losses, iterations)
+
+
+def _plot_solution_accuracy(classes, losses, iterations):
+    plt.figure()
+    plt.title(f'Loss after {iterations} iterations')
+    plt.xlabel('Loss')
+    plt.ylabel('Solver')
+    plt.barh(classes, losses)
+    plt.show()
