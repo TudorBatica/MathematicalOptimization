@@ -1,12 +1,11 @@
+import experiments
 import matplotlib.pyplot as plt
 
-from data import *
-from dataclasses import dataclass
-from mini_batch_pegasos import *
+from data import read_and_relabel_train_data
 
 def plot_loss(loss, batch_size):
     plt.figure()
-    plt.title(f'Loss convergence; batch size = 30, lambda = 1, 1000 iterations')
+    plt.title(f'Loss convergence; batch size = {batch_size}, lambda = 1, 1000 iterations')
     plt.xlabel("Iteration")
     plt.ylabel("Loss")
     plt.plot(loss)
@@ -22,17 +21,31 @@ def iterations_required_plot(k, iters):
 
 if __name__ == '__main__':
     training_data = read_and_relabel_train_data('MNIST-13.csv', 1)
-    params = MiniBatchParameters(lmbda=1, batch_size = 30, iterations=1000)
-    model = MiniBatchPegasos(training_data.labels, params)
+    
+    print('Running loss convergence comparison')
+    experiments.compare_loss_convergence(0.25, training_data, 50)
+
+    
+    """
+    training_data = read_and_relabel_train_data('MNIST-13.csv', 1)
+    params = PegasosParameters(lmbda=1, iterations=1000)
+    model = PegasosSolver(params)
+    loss = model.train(training_data)
+    plot_loss(loss, 'Full')
+
+    params = PegasosParameters(lmbda=1, batch_size = 30, iterations=1000)
+    model = PegasosSolver(params)
     loss = model.train(training_data)
     plot_loss(loss, 30)
+    """
     
+
     """
     iters = []
     batch_sizes = []
     for k in range(1, 300, 10):
-        params = MiniBatchParameters(lmbda=1, batch_size = k, iterations=10000000000, loss_threshold = 0.5)
-        model = MiniBatchPegasos(training_data.labels, params)
+        params = PegasosParameters(lmbda=1, batch_size = k, iterations=10000000000, loss_threshold = 0.5)
+        model = PegasosSolver(training_data.labels, params)
         iters.append(len(model.train(training_data)))
         batch_sizes.append(k)
 
