@@ -26,7 +26,8 @@ if __name__ == '__main__':
     model = MiniBatchPegasos(training_data.labels, params)
     loss = model.train(training_data)
     plot_loss(loss, 30)
-
+    
+    """
     iters = []
     batch_sizes = []
     for k in range(1, 300, 10):
@@ -36,3 +37,4 @@ if __name__ == '__main__':
         batch_sizes.append(k)
 
     iterations_required_plot([str(b) for b in batch_sizes], iters)
+    """

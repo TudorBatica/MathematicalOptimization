@@ -20,6 +20,8 @@ class MiniBatchPegasos:
 
     def train(self, training_data: LabeledData) -> List[float]:
         weights = np.zeros([1, training_data.data.shape[1]])
+        print(weights)
+        print(weights.T)
         losses = []
         for t in range(1, self.params.iterations + 1):
             weights = self._compute_next_weights(weights, t, training_data)
@@ -77,12 +79,11 @@ class MiniBatchPegasos:
 
     def _compute_loss(self, training_data, weights):
         """
-        Compute the regularized hinge loss.
+        Compute the loss function.
         """
         loss = 0
         temp = training_data.labels * np.dot(training_data.data, weights.T)
         for i in range(training_data.data.shape[0]):
-            loss += np.maximum(0, 1 - temp[i])  # compute hinge loss
-        loss = loss / training_data.data.shape[0] + self.params.lmbda / 2 * np.linalg.norm(weights) ** 2
+            loss += np.maximum(0, 1 - temp[i])  
 
-        return loss
+        return loss / training_data.data.shape[0] + self.params.lmbda / 2 * np.linalg.norm(weights) ** 2
