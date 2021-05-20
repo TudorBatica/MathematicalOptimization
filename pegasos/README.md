@@ -4,6 +4,6 @@ Implementation for Pegasos, an algorithm for solving the optimization problem fo
 The algorithm has been proposed by Shai Shalev-Shwartz, Yoram Singer and Nathan Srebro in this [paper](paper/Paper_Pegasos.pdf).
   
   
-![Convergence comparison](plots/convergence_comparison_k=50.png)  
+![Convergence comparison](plots/convergence_comparison_k=75.png)  
 ![Iterations required plot](plots/iters_req_b_size_loss_25.png)  
 ![Loss after 1000 iterations](plots/loss_after_1000_iterations.png)

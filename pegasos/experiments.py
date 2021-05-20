@@ -65,7 +65,6 @@ def _plot_losses_on_same_figure(mini_batch_loss, normal_loss, mini_batch_size, d
     plt.ylabel("Loss")
     plt.legend(
         [f'Mini-Batch Pegasos(k={mini_batch_size}, i.e. {mini_batch_size_percentage:.1f}%)', 'Normal Pegasos'])
-    plt.savefig(f'convergence_comparison_k={mini_batch_size}')
     plt.show()
 
 
